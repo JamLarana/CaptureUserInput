@@ -1,0 +1,154 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+// Model Class
+class Todo {
+  String text;
+  List preferredContact;
+
+  Todo({
+    this.text,
+    this.preferredContact,
+  });
+}
+
+// Controller
+class TodoController extends GetxController {
+  List todos = [];
+  void addToTodos(item) {
+    todos.add(item);
+    update();
+  }
+}
+
+// Data input screen
+class TodoScreen extends StatelessWidget {
+  final TodoController todoController = Get.find();
+
+  @override
+  Widget build(BuildContext context) {
+    TextEditingController textEditingController = TextEditingController();
+    return Scaffold(
+      body: Container(
+        padding: EdgeInsets.all(12),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.blue, width: 2),
+                ),
+                height: 200,
+                child: TextField(
+                  controller: textEditingController,
+                  decoration: InputDecoration(
+                    hintText: 'Type here',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              CustomCheckbox(title: 'WhatsApp'),
+              CustomCheckbox(title: 'Phone Call Ok'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  RaisedButton(
+                    color: Colors.purple,
+                    child: Text('Cancel'),
+                    onPressed: () => Get.back(),
+                  ),
+                  RaisedButton(
+                    color: Colors.green,
+                    child: Text('Add'),
+                    onPressed: () {
+                      todoController.addToTodos(
+                        Todo(
+                          text: textEditingController.text,
+                          // Here is where I want to add
+                          // a CustomCheckbox "controller" or its equivalent
+                        ),
+                      );
+                      Get.back();
+                    },
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Data display screen
+class TodoHomeScreen extends StatelessWidget {
+  final TodoController todoController = Get.put(TodoController());
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Todo Example'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () => Get.to(TodoScreen()),
+      ),
+      body: GetBuilder(
+          init: todoController,
+          builder: (todoController) => ListView.separated(
+                itemBuilder: (context, index) => Container(
+                  child: Column(
+                    children: [
+                      Text('Title: ${todoController.todos[index].text}'),
+                      //Here is where I want to add PreferredContact icons based on...
+                      //  if 'WhatsApp' and or 'Phone Call Ok' is selected
+                      //  in the TodoScreen
+                    ],
+                  ),
+                ),
+                separatorBuilder: (_, __) => Divider(
+                  height: 3,
+                ),
+                itemCount: todoController.todos.length,
+              )),
+    );
+  }
+}
+
+// I created a custom checkbox for convenience
+class CustomCheckbox extends StatefulWidget {
+  final String title;
+
+  const CustomCheckbox({Key key, @required this.title}) : super(key: key);
+
+  @override
+  _CustomCheckboxState createState() => _CustomCheckboxState();
+}
+
+class _CustomCheckboxState extends State<CustomCheckbox> {
+  bool itemSelected = false;
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          itemSelected = !itemSelected;
+        });
+      },
+      child: Row(
+        children: <Widget>[
+          Icon(
+            itemSelected ? Icons.check_box : Icons.check_box_outline_blank,
+            color: itemSelected ? Colors.red : Colors.black45,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            widget.title,
+            style: TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+}
